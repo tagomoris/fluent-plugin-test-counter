@@ -1,43 +1,47 @@
 class Fluent::TestCounterOutput < Fluent::BufferedOutput
   Fluent::Plugin.register_output('testcounter', self)
 
-  include Fluent::SetTagKeyMixin
-  config_set_default :include_tag_key, false
+  attr_accessor :show_count
 
   include Fluent::SetTimeKeyMixin
   config_set_default :include_time_key, true
 
-  # config_param :hoge, :string, :default => 'hoge'
-
   def initialize
     super
-    # require 'hogepos'
+    @counter = {}
   end
 
   def configure(conf)
     super
-    # @path = conf['path']
+    @show_count = Fluent::Config.bool_value(conf['show_count'] || 'false')
+    @timef = Fluent::TimeFormatter.new('%Y%m%d%H%M%S', false)
   end
 
   def start
     super
-    # init
   end
 
   def shutdown
     super
-    # destroy
   end
 
   def format(tag, time, record)
-    [tag, time, record].to_msgpack
+    @timef.format(time) + "\n"
   end
 
   def write(chunk)
-    records = []
-    chunk.msgpack_each { |record|
-      # records << record
+    now_s = @timef.format(Fluent::Engine.now)
+    chunk.read.split("\n").each {|record|
+      next if record.length < 1
+      @counter[record] ||= 0
+      @counter[record] += 1
     }
-    # write records
+    results = []
+    @counter.keys.select{|k| k < now_s}.sort.each do |k|
+      count = @counter.delete(k)
+      p "#{k} #{count}" if @show_count
+      results.push([k, count])
+    end
+    results
   end
 end
