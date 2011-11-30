@@ -7,7 +7,7 @@ class TestCounterOutputTest < Test::Unit::TestCase
   end
 
   CONFIG = %[
-show_count false
+show_count true
   ]
 
   def create_driver(conf = CONFIG)
@@ -16,7 +16,7 @@ show_count false
 
   def test_configure
     d = create_driver
-    assert_equal false, d.instance.show_count
+    assert_equal true, d.instance.show_count
 
     d = create_driver %[
 show_count true

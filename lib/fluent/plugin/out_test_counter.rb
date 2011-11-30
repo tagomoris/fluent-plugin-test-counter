@@ -39,7 +39,7 @@ class Fluent::TestCounterOutput < Fluent::BufferedOutput
     results = []
     @counter.keys.select{|k| k < now_s}.sort.each do |k|
       count = @counter.delete(k)
-      p "#{k} #{count}" if @show_count
+      $log.info "test_counter: #{k} #{count}" if @show_count
       results.push([k, count])
     end
     results
